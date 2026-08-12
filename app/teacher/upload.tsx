@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { CheckCircle2, ChevronDown, ImageUp } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, ChevronDown, ImageUp } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -91,10 +91,11 @@ export default function TeacherUploadScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.wordmark}>jstyoucation</Text>
+
         <Pressable onPress={() => router.replace('/')}>
-          <Avatar initials="MT" variant="sm" />
+          <ArrowLeft size={20} color={colors.ink} />
         </Pressable>
+
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

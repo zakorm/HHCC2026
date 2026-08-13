@@ -14,9 +14,9 @@ const STATS = [
 ];
 
 const SUBJECTS = [
-  { topic: 'Maths', weakOrStrong: 'weak' as const, percent: 38 },
-  { topic: 'English', weakOrStrong: 'strong' as const, percent: 82 },
-  { topic: 'Science', weakOrStrong: 'weak' as const, percent: 45 },
+  { topic: 'Maths', percent: 38 },
+  { topic: 'English', percent: 82 },
+  { topic: 'Science', percent: 45 },
 ];
 
 const ACTIVITY = [
@@ -56,7 +56,6 @@ export default function ParentProgressScreen() {
             renderItem={({ item }) => (
               <MasteryRow
                 topic={item.topic}
-                weakOrStrong={item.weakOrStrong}
                 percent={item.percent}
               />
             )}

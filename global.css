@@ -10,7 +10,7 @@
     @apply gap-4.5 px-8 pb-6;
   }
   .surface-card {
-    @apply rounded-lg border border-line bg-card p-4.5;
+    @apply rounded-lg border border-line bg-card p-4;
   }
   .text-muted-sm {
     @apply font-body text-small text-muted;

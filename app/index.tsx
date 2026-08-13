@@ -59,18 +59,27 @@ export default function RoleSelectScreen() {
         <View className="gap-3.5">
           {ROLES.map(({ key, label, description, icon: Icon, route }, i) => (
             type === i &&
-            <Pressable
-              key={key}
-              className="surface-card flex-row items-center gap-3.5 active:bg-accent-soft"
-              onPress={() => router.push(route)}>
-              <View className="h-10 w-10 items-center justify-center rounded-md bg-accent-soft">
-                <Icon size={20} color={colors.accent} />
+            
+            <View key={key} className="gap-5">
+              <View className="flex-row gap-4">
+                <View className="h-10 w-10 items-center justify-center rounded-md bg-accent-soft">
+                  <Icon size={20} color={colors.accent} />
+                </View>
+
+                <View className="flex-1 justify-center">
+                  <Text className="font-body text-[15px] text-center text-muted">{description}</Text>
+                </View>
               </View>
-              <View className="flex-1 gap-0.5">
-                <Text className="font-display text-card-title text-ink">{label}</Text>
-                <Text className="font-body text-[10px] text-muted">{description}</Text>
-              </View>
-            </Pressable>
+
+
+              <Pressable
+                className="surface-card gap-3.5 self-start w-45 self-center"
+                onPress={() => router.push(route)}
+              > 
+                <Text className="text-center text-[15px]">Log In</Text>
+              </Pressable>
+
+            </View>
           ))}
         </View>
       </View>

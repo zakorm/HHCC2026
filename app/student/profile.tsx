@@ -9,10 +9,10 @@ import { MasteryRow } from '@/components/ui/mastery-row';
 import { colors } from '@/constants/design-tokens';
 
 const MASTERY = [
-  { topic: 'Fractions', weakOrStrong: 'weak' as const, percent: 38 },
-  { topic: 'Persuasive writing', weakOrStrong: 'strong' as const, percent: 82 },
-  { topic: 'Cell structure', weakOrStrong: 'weak' as const, percent: 45 },
-  { topic: 'Algebra basics', weakOrStrong: 'strong' as const, percent: 76 },
+  { topic: 'Fractions', percent: 10 },
+  { topic: 'Persuasive writing', percent: 100 },
+  { topic: 'Cell structure', percent: 45 },
+  { topic: 'Algebra basics', percent: 70 },
 ];
 
 const RECOMMENDED = [
@@ -45,8 +45,7 @@ export default function StudentProfileScreen() {
             ItemSeparatorComponent={() => <View className="h-3.5" />}
             renderItem={({ item }) => (
               <MasteryRow
-                topic={item.topic}
-                weakOrStrong={item.weakOrStrong}
+                topic={item.topic} 
                 percent={item.percent}
               />
             )}

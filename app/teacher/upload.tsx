@@ -118,7 +118,7 @@ export default function TeacherUploadScreen() {
 
           <Pressable className="flex-row items-center justify-center gap-2 rounded-sm bg-accent py-3.5">
             <CheckCircle2 size={16} color={colors.card} />
-            <Text className="font-body-semibold text-body text-card">Submit for marking</Text>
+            <Text className="font-body-semibold text-body text-card">Save score</Text>
           </Pressable>
         </Card>
 

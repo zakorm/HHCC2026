@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .screen-root {
+    @apply flex-1 bg-bg;
+  }
+  .screen-scroll-content {
+    @apply gap-4.5 px-8 pb-6;
+  }
+  .surface-card {
+    @apply rounded-lg border border-line bg-card p-4.5;
+  }
+  .text-muted-sm {
+    @apply font-body text-small text-muted;
+  }
+  .text-body-ink {
+    @apply font-body-medium text-body text-ink;
+  }
+  .text-body-ink-soft {
+    @apply font-body-medium text-body text-ink-soft;
+  }
+  .divider-line {
+    @apply my-2 h-px bg-line;
+  }
+  .list-item-row {
+    @apply flex-row items-center gap-2;
+  }
+  .tab {
+    @apply flex-1 p-2;
+  }
+}

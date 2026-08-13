@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/card';
 import { MasteryRow } from '@/components/ui/mastery-row';
-import { colors, fonts, radii, spacing, typeScale } from '@/constants/design-tokens';
+import { colors } from '@/constants/design-tokens';
 
 const STATS = [
   { label: 'Submissions marked', value: '12' },
@@ -27,20 +27,22 @@ const ACTIVITY = [
 
 export default function ParentProgressScreen() {
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.header}>
+    <SafeAreaView className="screen-root" edges={['top', 'bottom']}>
+      <View className="flex-row items-center gap-3.5 px-8 pb-3.5 pt-2">
         <Pressable onPress={() => router.replace('/')}>
-          <ArrowLeft size={20} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
-        <Text style={styles.wordmark}>jstyoucation</Text>
+        <Text className="font-display-semibold text-page-title text-ink">jstyoucation</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.statsRow}>
+      <ScrollView contentContainerClassName="screen-scroll-content" showsVerticalScrollIndicator={false}>
+        <View className="flex-row gap-2">
           {STATS.map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
+            <View
+              key={stat.label}
+              className="surface-card flex-1 items-center gap-1 py-4.5">
+              <Text className="font-display text-page-title text-ink">{stat.value}</Text>
+              <Text className="text-center text-muted-sm">{stat.label}</Text>
             </View>
           ))}
         </View>
@@ -50,7 +52,7 @@ export default function ParentProgressScreen() {
             data={SUBJECTS}
             keyExtractor={(item) => item.topic}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+            ItemSeparatorComponent={() => <View className="h-3.5" />}
             renderItem={({ item }) => (
               <MasteryRow
                 topic={item.topic}
@@ -66,12 +68,14 @@ export default function ParentProgressScreen() {
             data={ACTIVITY}
             keyExtractor={(item) => item.text}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.divider} />}
+            ItemSeparatorComponent={() => <View className="divider-line" />}
             renderItem={({ item }) => (
-              <View style={styles.activityRow}>
-                <View style={styles.dot} />
-                <Text style={styles.activityText}>{item.text}</Text>
-                <Text style={styles.activityTime}>{item.time}</Text>
+              <View className="flex-row items-start gap-2">
+                <View className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+                <Text className="flex-1 font-body text-body leading-[18px] text-ink">
+                  {item.text}
+                </Text>
+                <Text className="shrink-0 font-mono text-small text-muted">{item.time}</Text>
               </View>
             )}
           />
@@ -80,86 +84,3 @@ export default function ParentProgressScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  wordmark: {
-    fontFamily: fonts.displaySemibold,
-    fontSize: typeScale.pageTitle,
-    color: colors.ink,
-  },
-  content: {
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xl,
-    gap: spacing.lg,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: typeScale.pageTitle,
-    color: colors.ink,
-  },
-  statLabel: {
-    fontFamily: fonts.body,
-    fontSize: typeScale.small,
-    color: colors.muted,
-    textAlign: 'center',
-  },
-  rowGap: {
-    height: spacing.md,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.line,
-    marginVertical: spacing.sm,
-  },
-  activityRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent,
-    marginTop: 6,
-  },
-  activityText: {
-    flex: 1,
-    fontFamily: fonts.body,
-    fontSize: typeScale.body,
-    color: colors.ink,
-    lineHeight: 18,
-  },
-  activityTime: {
-    fontFamily: fonts.mono,
-    fontSize: typeScale.small,
-    color: colors.muted,
-    flexShrink: 0,
-  },
-});

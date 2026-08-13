@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { colors, fonts, radii, spacing, typeScale } from '@/constants/design-tokens';
+import { Text, View } from 'react-native';
 
 type StatusVariant = 'done' | 'processing';
 
@@ -9,29 +7,17 @@ type StatusPillProps = {
   variant: StatusVariant;
 };
 
-const VARIANT_COLORS: Record<StatusVariant, { bg: string; fg: string }> = {
-  done: { bg: colors.sageSoft, fg: colors.sage },
-  processing: { bg: colors.accentSoft, fg: colors.accent },
+const VARIANT_CLASSES: Record<StatusVariant, { bg: string; fg: string }> = {
+  done: { bg: 'bg-sage-soft', fg: 'text-sage' },
+  processing: { bg: 'bg-accent-soft', fg: 'text-accent' },
 };
 
 export function StatusPill({ label, variant }: StatusPillProps) {
-  const { bg, fg } = VARIANT_COLORS[variant];
+  const { bg, fg } = VARIANT_CLASSES[variant];
 
   return (
-    <View style={[styles.pill, { backgroundColor: bg }]}>
-      <Text style={[styles.label, { color: fg }]}>{label}</Text>
+    <View className={`rounded-pill px-2 py-1 ${bg}`}>
+      <Text className={`font-body-medium text-small ${fg}`}>{label}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  pill: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  label: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.small,
-  },
-});

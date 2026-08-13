@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Sparkles } from 'lucide-react-native';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { MasteryRow } from '@/components/ui/mastery-row';
-import { colors, fonts, radii, spacing, typeScale } from '@/constants/design-tokens';
+import { colors } from '@/constants/design-tokens';
 
 const MASTERY = [
   { topic: 'Fractions', weakOrStrong: 'weak' as const, percent: 38 },
@@ -23,18 +23,18 @@ const RECOMMENDED = [
 
 export default function StudentProfileScreen() {
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.header}>
+    <SafeAreaView className="screen-root" edges={['top', 'bottom']}>
+      <View className="px-8 pb-2 pt-2">
         <Pressable onPress={() => router.replace('/')}>
-          <ArrowLeft size={20} color={colors.ink} />
+          <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileHeader}>
+      <ScrollView contentContainerClassName="screen-scroll-content" showsVerticalScrollIndicator={false}>
+        <View className="items-center gap-1 pb-2">
           <Avatar initials="AO" variant="lg" />
-          <Text style={styles.name}>Amara Osei</Text>
-          <Text style={styles.subtitle}>Year 7 · Maths, English, Science</Text>
+          <Text className="mt-2 font-display text-page-title text-ink">Amara Osei</Text>
+          <Text className="text-muted-sm">Year 7 · Maths, English, Science</Text>
         </View>
 
         <Card title="Strengths & weaknesses">
@@ -42,7 +42,7 @@ export default function StudentProfileScreen() {
             data={MASTERY}
             keyExtractor={(item) => item.topic}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+            ItemSeparatorComponent={() => <View className="h-3.5" />}
             renderItem={({ item }) => (
               <MasteryRow
                 topic={item.topic}
@@ -53,10 +53,12 @@ export default function StudentProfileScreen() {
           />
         </Card>
 
-        <View style={styles.focusCard}>
-          <Sparkles size={20} color={colors.card} />
-          <Text style={styles.focusTitle}>Focus on Fractions this week</Text>
-          <Text style={styles.focusBody}>
+        <View className="gap-2 rounded-lg bg-ink p-4.5">
+          <Sparkles size={18} color={colors.card} />
+          <Text className="font-display text-card-title text-card">
+            Focus on Fractions this week
+          </Text>
+          <Text className="font-body text-body leading-[19px] text-accent-soft">
             You&apos;re closest to a breakthrough here — a bit of daily practice will move this
             from &ldquo;needs work&rdquo; to &ldquo;strong.&rdquo;
           </Text>
@@ -67,18 +69,18 @@ export default function StudentProfileScreen() {
             data={RECOMMENDED}
             keyExtractor={(item) => item.name}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={styles.divider} />}
+            ItemSeparatorComponent={() => <View className="divider-line" />}
             renderItem={({ item }) => (
-              <View style={styles.toolRow}>
-                <View style={styles.toolIconChip}>
-                  <Sparkles size={16} color={colors.accent} />
+              <View className="list-item-row">
+                <View className="h-8 w-8 items-center justify-center rounded-sm bg-accent-soft">
+                  <Sparkles size={14} color={colors.accent} />
                 </View>
-                <View style={styles.toolText}>
-                  <Text style={styles.toolName}>{item.name}</Text>
-                  <Text style={styles.toolDescription}>{item.description}</Text>
+                <View className="flex-1 gap-0.5">
+                  <Text className="text-body-ink">{item.name}</Text>
+                  <Text className="text-muted-sm">{item.description}</Text>
                 </View>
-                <Pressable style={styles.toolButton}>
-                  <Text style={styles.toolButtonLabel}>Start</Text>
+                <Pressable className="rounded-pill border border-accent px-3.5 py-1">
+                  <Text className="font-body-medium text-small text-accent">Start</Text>
                 </Pressable>
               </View>
             )}
@@ -88,100 +90,3 @@ export default function StudentProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  content: {
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xl,
-    gap: spacing.lg,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingBottom: spacing.sm,
-  },
-  name: {
-    fontFamily: fonts.display,
-    fontSize: typeScale.pageTitle,
-    color: colors.ink,
-    marginTop: spacing.sm,
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    fontSize: typeScale.small,
-    color: colors.muted,
-  },
-  rowGap: {
-    height: spacing.md,
-  },
-  focusCard: {
-    backgroundColor: colors.ink,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  focusTitle: {
-    fontFamily: fonts.display,
-    fontSize: typeScale.cardTitle,
-    color: colors.card,
-  },
-  focusBody: {
-    fontFamily: fonts.body,
-    fontSize: typeScale.body,
-    color: colors.accentSoft,
-    lineHeight: 19,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.line,
-    marginVertical: spacing.sm,
-  },
-  toolRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  toolIconChip: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.sm,
-    backgroundColor: colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toolText: {
-    flex: 1,
-    gap: 2,
-  },
-  toolName: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.body,
-    color: colors.ink,
-  },
-  toolDescription: {
-    fontFamily: fonts.body,
-    fontSize: typeScale.small,
-    color: colors.muted,
-  },
-  toolButton: {
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  toolButtonLabel: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.small,
-    color: colors.accent,
-  },
-});

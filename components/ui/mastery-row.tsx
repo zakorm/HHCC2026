@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { colors, fonts, radii, spacing, typeScale } from '@/constants/design-tokens';
+import { Text, View } from 'react-native';
 
 type MasteryRowProps = {
   topic: string;
@@ -10,58 +8,23 @@ type MasteryRowProps = {
 
 export function MasteryRow({ topic, weakOrStrong, percent }: MasteryRowProps) {
   const isStrong = weakOrStrong === 'strong';
-  const barColor = isStrong ? colors.sage : colors.coral;
-  const tagBg = isStrong ? colors.sageSoft : colors.coralSoft;
-  const tagFg = isStrong ? colors.sage : colors.coral;
 
   return (
-    <View style={styles.row}>
-      <View style={styles.header}>
-        <Text style={styles.topic}>{topic}</Text>
-        <View style={[styles.tag, { backgroundColor: tagBg }]}>
-          <Text style={[styles.tagLabel, { color: tagFg }]}>
+    <View className="gap-1">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-body-ink">{topic}</Text>
+        <View className={`rounded-pill px-2 py-[3px] ${isStrong ? 'bg-sage-soft' : 'bg-coral-soft'}`}>
+          <Text className={`font-body-medium text-small ${isStrong ? 'text-sage' : 'text-coral'}`}>
             {isStrong ? 'Strong' : 'Needs work'}
           </Text>
         </View>
       </View>
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${percent}%`, backgroundColor: barColor }]} />
+      <View className="h-1.5 overflow-hidden rounded-pill bg-line">
+        <View
+          className={`h-full rounded-pill ${isStrong ? 'bg-sage' : 'bg-coral'}`}
+          style={{ width: `${percent}%` }}
+        />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    gap: spacing.xs,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  topic: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.body,
-    color: colors.ink,
-  },
-  tag: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  tagLabel: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.small,
-  },
-  track: {
-    height: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.line,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: radii.pill,
-  },
-});

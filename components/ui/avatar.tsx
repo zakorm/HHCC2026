@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { colors, fonts } from '@/constants/design-tokens';
+import { Text, View } from 'react-native';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
@@ -9,40 +7,22 @@ type AvatarProps = {
   variant?: AvatarSize;
 };
 
-const DIMENSIONS: Record<AvatarSize, number> = {
-  sm: 32,
-  md: 44,
-  lg: 64,
+const CIRCLE_CLASSES: Record<AvatarSize, string> = {
+  sm: 'w-[30px] h-[30px]',
+  md: 'w-10 h-10',
+  lg: 'w-[58px] h-[58px]',
 };
 
-const FONT_SIZES: Record<AvatarSize, number> = {
-  sm: 12,
-  md: 16,
-  lg: 22,
+const TEXT_CLASSES: Record<AvatarSize, string> = {
+  sm: 'text-[11px]',
+  md: 'text-sm',
+  lg: 'text-[20px]',
 };
 
 export function Avatar({ initials, variant = 'md' }: AvatarProps) {
-  const size = DIMENSIONS[variant];
-
   return (
-    <View
-      style={[
-        styles.circle,
-        { width: size, height: size, borderRadius: size / 2 },
-      ]}>
-      <Text style={[styles.initials, { fontSize: FONT_SIZES[variant] }]}>{initials}</Text>
+    <View className={`items-center justify-center rounded-full bg-accent-soft ${CIRCLE_CLASSES[variant]}`}>
+      <Text className={`font-body-semibold text-ink ${TEXT_CLASSES[variant]}`}>{initials}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  circle: {
-    backgroundColor: colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initials: {
-    fontFamily: fonts.bodySemibold,
-    color: colors.ink,
-  },
-});

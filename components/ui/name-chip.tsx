@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { colors, fonts, radii, spacing, typeScale } from '@/constants/design-tokens';
+import { Text, View } from 'react-native';
 
 type NameChipProps = {
   name: string;
@@ -8,24 +6,8 @@ type NameChipProps = {
 
 export function NameChip({ name }: NameChipProps) {
   return (
-    <View style={styles.chip}>
-      <Text style={styles.label}>{name}</Text>
+    <View className="rounded-pill border border-line bg-bg px-3.5 py-1">
+      <Text className="font-body-medium text-small text-ink-soft">{name}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  chip: {
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  label: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: typeScale.small,
-    color: colors.inkSoft,
-  },
-});

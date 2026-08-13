@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { ArrowLeft, CheckCircle2, ChevronDown, ImageUp } from 'lucide-react-native';
+import { CheckCircle2, ChevronDown, ImageUp } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -96,9 +96,10 @@ export default function TeacherUploadScreen() {
 
   return (
     <SafeAreaView className="screen-root" edges={['top', 'bottom']}>
-      <View className="flex-row items-center justify-between px-8 pb-3.5 pt-2">
-        <Pressable onPress={() => router.replace('/')}>
-          <ArrowLeft size={18} color={colors.ink} />
+      <View className="gap-3.5 px-8 pb-3.5 pt-2 flex-row justify-between">
+        <Text className="font-display-semibold text-wordmark text-ink flex-2 text-center">jstyoucation</Text>
+        <Pressable onPress={() => router.replace('/')} className="surface-card gap-3.5 self-start w-45">
+            <Text className="text-center text-[10px]">Log Out</Text>
         </Pressable>
       </View>
 
@@ -136,7 +137,7 @@ export default function TeacherUploadScreen() {
                   <Text className="text-muted-sm">{item.detail}</Text>
                 </View>
                 <StatusPill
-                  label={item.status === 'done' ? 'Marked' : 'Processing'}
+                  label={item.status === 'done' ? 'Marked' : 'Pending'}
                   variant={item.status}
                 />
               </View>

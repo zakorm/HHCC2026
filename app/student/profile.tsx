@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Sparkles } from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,9 +24,10 @@ const RECOMMENDED = [
 export default function StudentProfileScreen() {
   return (
     <SafeAreaView className="screen-root" edges={['top', 'bottom']}>
-      <View className="px-8 pb-2 pt-2">
-        <Pressable onPress={() => router.replace('/')}>
-          <ArrowLeft size={18} color={colors.ink} />
+      <View className="gap-3.5 px-8 pb-3.5 pt-2 flex-row justify-between">
+        <Text className="font-display-semibold text-wordmark text-ink flex-2 text-center">jstyoucation</Text>
+        <Pressable onPress={() => router.replace('/')} className="surface-card gap-3.5 self-start w-45">
+            <Text className="text-center text-[10px]">Log Out</Text>
         </Pressable>
       </View>
 

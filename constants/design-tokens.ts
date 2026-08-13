@@ -7,10 +7,6 @@ export const colors = {
   inkSoft: '#3A5A80', // secondary headings
   accent: '#4A78A5', // links, icons, processing states
   accentSoft: '#DCE9F5', // accent backgrounds (upload zone, icon chips)
-  sage: '#5C8A72', // "strong" mastery indicator
-  sageSoft: '#E1EEE6',
-  coral: '#D8542E', // "needs work" mastery indicator, alerts
-  coralSoft: '#FBE4DB',
   bg: '#EFF4F9', // screen background
   card: '#FFFFFF',
   line: '#E1E7EE', // borders/dividers

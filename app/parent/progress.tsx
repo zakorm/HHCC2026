@@ -1,11 +1,9 @@
 import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/card';
 import { MasteryRow } from '@/components/ui/mastery-row';
-import { colors } from '@/constants/design-tokens';
 
 const STATS = [
   { label: 'Submissions marked', value: '12' },
@@ -28,11 +26,11 @@ const ACTIVITY = [
 export default function ParentProgressScreen() {
   return (
     <SafeAreaView className="screen-root" edges={['top', 'bottom']}>
-      <View className="flex-row items-center gap-3.5 px-8 pb-3.5 pt-2">
-        <Pressable onPress={() => router.replace('/')}>
-          <ArrowLeft size={18} color={colors.ink} />
+      <View className="gap-3.5 px-8 pb-3.5 pt-2 flex-row justify-between">
+        <Text className="font-display-semibold text-wordmark text-ink flex-2 text-center">jstyoucation</Text>
+        <Pressable onPress={() => router.replace('/')} className="surface-card gap-3.5 self-start w-45">
+            <Text className="text-center text-[10px]">Log Out</Text>
         </Pressable>
-        <Text className="font-display-semibold text-page-title text-ink">jstyoucation</Text>
       </View>
 
       <ScrollView contentContainerClassName="screen-scroll-content" showsVerticalScrollIndicator={false}>

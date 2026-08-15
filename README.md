@@ -9,7 +9,7 @@ features:
 - links to extra learning for struggling subjects
 - see what your child has been up to
 
-start this project:
+start this project:  
    git clone https://github.com/zakorm/HHCC2026  
    npm install  
    npx expo start --tunnel  

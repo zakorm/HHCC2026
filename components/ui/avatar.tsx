@@ -21,7 +21,7 @@ const TEXT_CLASSES: Record<AvatarSize, string> = {
 
 export function Avatar({ initials, variant = 'md' }: AvatarProps) {
   return (
-    <View className={`items-center justify-center rounded-full bg-accent-soft ${CIRCLE_CLASSES[variant]}`}>
+    <View className={`items-center justify-center rounded-full bg-green-soft ${CIRCLE_CLASSES[variant]}`}>
       <Text className={`font-body-semibold text-ink ${TEXT_CLASSES[variant]}`}>{initials}</Text>
     </View>
   );

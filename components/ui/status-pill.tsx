@@ -8,8 +8,8 @@ type StatusPillProps = {
 };
 
 const VARIANT_CLASSES: Record<StatusVariant, { bg: string; fg: string }> = {
-  done: { bg: 'bg-sage-soft', fg: 'text-sage' },
-  processing: { bg: 'bg-accent-soft', fg: 'text-accent' },
+  done: { bg: 'bg-green-soft', fg: 'text-green-dark' },
+  processing: { bg: 'bg-process-soft', fg: 'text-process' },
 };
 
 export function StatusPill({ label, variant }: StatusPillProps) {

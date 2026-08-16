@@ -82,14 +82,14 @@ function interpolateHsv(hex1: string, hex2: string, percent: number): string {
 
 
 export function MasteryRow({ topic, percent }: MasteryRowProps) {
-  const barColor = interpolateHsv('#FF0000', '#5C8A72', percent);
+  const barColor = interpolateHsv('#FF3B30', '#4CAF50', percent);
 
   return (
     <View className="gap-1">
       <View className="flex-row items-center justify-between">
         <Text className="text-body-ink">{topic}</Text>
-        <View className={"rounded-pill px-2 py-[3px]"} style={{backgroundColor: percent < 50 ? (percent < 25 ? '#F7D6D5' : '#F7ECD8') : (percent < 75 ? '#EFF5DD' : '#E1EEE6')}}>
-          <Text className="font-body-medium text-small" style={{color: percent < 50 ? (percent < 25 ? '#ff0000' : '#E29A26') : (percent < 75 ? '#a5c442' : '#5C8A72')}}>
+        <View className={"rounded-pill px-2 py-[3px]"} style={{backgroundColor: percent < 50 ? '#FDEEDF' : '#E9F6EA'}}>
+          <Text className="font-body-medium text-small" style={{color: percent < 25 ? '#FF3B30' : percent < 50 ? '#F2994A' : percent < 75 ? '#4CAF50' : '#2E7D32'}}>
             {percent < 50 ? (percent < 25 ? '!Danger Zone!' : 'Needs work') : (percent < 75 ? 'Good' : 'Excellent')}
           </Text>
         </View>

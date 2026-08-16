@@ -68,11 +68,11 @@ export default function ParentProgressScreen() {
             ItemSeparatorComponent={() => <View className="divider-line" />}
             renderItem={({ item }) => (
               <View className="flex-row items-start gap-2">
-                <View className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+                <View className="mt-1.5 h-1.5 w-1.5 rounded-full bg-green" />
                 <Text className="flex-1 font-body text-body leading-[18px] text-ink">
                   {item.text}
                 </Text>
-                <Text className="shrink-0 font-mono text-small text-muted">{item.time}</Text>
+                <Text className="shrink-0 font-body-medium text-small text-muted">{item.time}</Text>
               </View>
             )}
           />

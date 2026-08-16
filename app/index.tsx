@@ -62,8 +62,8 @@ export default function RoleSelectScreen() {
             
             <View key={key} className="gap-5">
               <View className="flex-row gap-4">
-                <View className="h-10 w-10 items-center justify-center rounded-md bg-accent-soft">
-                  <Icon size={20} color={colors.accent} />
+                <View className="h-10 w-10 items-center justify-center rounded-md bg-green-soft">
+                  <Icon size={20} color={colors.green} />
                 </View>
 
                 <View className="flex-1 justify-center">

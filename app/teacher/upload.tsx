@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { NameChip } from '@/components/ui/name-chip';
 import { StatusPill } from '@/components/ui/status-pill';
 import { colors } from '@/constants/design-tokens';
+import { initials } from '@/utils/initials';
 
 const RECENT_SUBMISSIONS = [
   { name: 'Amara Osei', detail: 'Maths · Fractions worksheet', status: 'done' as const },
@@ -20,14 +21,6 @@ const PRIORITY_GROUPS = [
   { topic: 'Persuasive writing', students: ['Liam Chen'] },
   { topic: 'Cell structure', students: ['Priya Nair', 'Liam Chen'] },
 ];
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
 
 export default function TeacherUploadScreen() {
   return (

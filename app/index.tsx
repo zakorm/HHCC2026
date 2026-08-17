@@ -1,8 +1,8 @@
 import { colors } from '@/constants/design-tokens';
 import { router } from 'expo-router';
-import { GraduationCap, NotebookPen, Users } from 'lucide-react-native';
+import { ChevronDown, GraduationCap, NotebookPen, Users } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ROLES = [
@@ -29,8 +29,61 @@ const ROLES = [
   },
 ];
 
+const ROLE_PEOPLE: Record<string, string[]> = {
+  teacher: ['Ms. Adaeze Obi', 'Mr. Daniel Reyes'],
+  student: ['Amara Osei', 'Liam Chen', 'Priya Nair', 'Ethan Brooks'],
+  parent: ['Chinwe Osei', 'Sarah Chen', 'Raj Nair', 'Karen Brooks'],
+};
+
+function PersonSelect({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View>
+      <Pressable
+        className="flex-row items-center justify-between rounded-sm border border-line px-3.5 py-2"
+        onPress={() => setOpen(true)}>
+        <View>
+          <Text className="font-body-medium text-eyebrow uppercase text-muted">Who are you?</Text>
+          <Text className="mt-0.5 text-body-ink">{value}</Text>
+        </View>
+        <ChevronDown size={16} color={colors.muted} />
+      </Pressable>
+
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable
+          className="flex-1 justify-end bg-[rgba(31,58,95,0.35)]"
+          onPress={() => setOpen(false)}>
+          <View className="rounded-t-lg bg-card px-4.5 py-2">
+            {options.map((option) => (
+              <Pressable
+                key={option}
+                className="border-b border-line py-3.5"
+                onPress={() => {
+                  onChange(option);
+                  setOpen(false);
+                }}>
+                <Text className="font-body text-body text-ink">{option}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
 export default function RoleSelectScreen() {
   const [type, setType] = useState(0);
+  const [person, setPerson] = useState(ROLE_PEOPLE[ROLES[0].key][0]);
   return (
     <SafeAreaView className="screen-root justify-start px-6 pt-6 bg-[#ffffff]" edges={['top', 'bottom']}>
       <View className="gap-6">
@@ -45,7 +98,10 @@ export default function RoleSelectScreen() {
               className={`flex-1 items-center py-3 rounded-t-lg ${
                 type === i ? 'bg-bg' : 'bg-[#f2f2f2]'
               }`}
-              onPress={() => setType(i)}>
+              onPress={() => {
+                setType(i);
+                setPerson(ROLE_PEOPLE[ROLES[i].key][0]);
+              }}>
               <Text className={type === i ? 'text-[#444444] font-medium' : 'text-[#bbbbbb]'}>
                 {label}
               </Text>
@@ -71,11 +127,12 @@ export default function RoleSelectScreen() {
                 </View>
               </View>
 
+              <PersonSelect value={person} options={ROLE_PEOPLE[key]} onChange={setPerson} />
 
               <Pressable
                 className="surface-card gap-3.5 self-start w-45 self-center"
-                onPress={() => router.push(route)}
-              > 
+                onPress={() => router.push({ pathname: route, params: { name: person } })}
+              >
                 <Text className="text-center text-[15px]">Log In</Text>
               </Pressable>
 

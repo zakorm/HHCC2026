@@ -3,7 +3,8 @@ import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/card';
-import { MasteryRow } from '@/components/ui/mastery-row';
+import { StatusBox } from '@/components/ui/status-box';
+import { TopicChip } from '@/components/ui/topic-chip';
 
 const STATS = [
   { label: 'Submissions marked', value: '12' },
@@ -11,11 +12,14 @@ const STATS = [
   { label: 'Focus topics', value: '3' },
 ];
 
-const SUBJECTS = [
-  { topic: 'Maths', percent: 38 },
-  { topic: 'English', percent: 82 },
-  { topic: 'Science', percent: 45 },
+const SUBJECTS: { topic: string; percent: number; status: 'strong' | 'weak' | 'neutral' }[] = [
+  { topic: 'Maths', percent: 38, status: 'weak' },
+  { topic: 'English', percent: 82, status: 'strong' },
+  { topic: 'Science', percent: 45, status: 'weak' },
 ];
+
+const STRONGEST_SUBJECT = SUBJECTS.reduce((max, s) => (s.percent > max.percent ? s : max), SUBJECTS[0]);
+const WEAKEST_SUBJECT = SUBJECTS.reduce((min, s) => (s.percent < min.percent ? s : min), SUBJECTS[0]);
 
 const ACTIVITY = [
   { text: 'Amara submitted a Fractions worksheet', time: '2h ago' },
@@ -46,16 +50,19 @@ export default function ParentProgressScreen() {
         </View>
 
         <Card title="Subject overview">
+          <View className="flex-row gap-2.5">
+            <StatusBox variant="strong" topic={STRONGEST_SUBJECT.topic} percent={STRONGEST_SUBJECT.percent} />
+            <StatusBox variant="weak" topic={WEAKEST_SUBJECT.topic} percent={WEAKEST_SUBJECT.percent} />
+          </View>
+
           <FlatList
             data={SUBJECTS}
             keyExtractor={(item) => item.topic}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View className="h-3.5" />}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View className="w-2.5" />}
             renderItem={({ item }) => (
-              <MasteryRow
-                topic={item.topic}
-                percent={item.percent}
-              />
+              <TopicChip name={item.topic} percent={item.percent} status={item.status} />
             )}
           />
         </Card>

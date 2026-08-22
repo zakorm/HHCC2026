@@ -4,3 +4,6 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# machine-specific backend URL (LAN IP for testing on a physical device)
+.env

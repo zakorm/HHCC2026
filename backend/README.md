@@ -1,16 +1,12 @@
 # Jstyoucation — backend
 
-Django + Django REST Framework backend for the Jstyoucation MVP (teacher upload/marking,
-student learning profile, parent read-only view). Built from the brief in
-`../claude-code-brief/` — see that folder for the PRD, ERD, and full API design docs.
+Django + Django REST Framework backend for the project (teacher upload/marking,
+student learning profile, parent read-only view).
 
-Database is local SQLite (not the Neon Postgres the original brief assumed — that was swapped
-out mid-build; see `../claude-code-brief/settings_snippet.py` if this ever needs to move to
-Postgres/Neon for real hosting).
+Database is local SQLite
 
 Auth is DRF's `TokenAuthentication` (a static per-user token, not JWT) — simplest thing that
-satisfies the `Authorization: Bearer <token>`-shaped contract in `openapi.yaml` for a hackathon
-MVP. `/auth/login` accepts `email` (not username) and resolves it to the underlying Django user.
+satisfies the `Authorization: Bearer <token>`-shaped contract in `openapi.yaml` for the project. `/auth/login` accepts an email and password, and resolves it to the underlying Django user.
 
 The "AI Scanner" is a synchronous fake marker (`api/marking.py`) — it picks a random topic from
 the submission's unit and a random correct/incorrect per question, then runs the exact same
@@ -58,6 +54,39 @@ topics, classes, and revision materials are all manageable there without a custo
 Role-based access (`api/permissions.py`): a teacher can only touch classes they're assigned to;
 a student/parent can only read students they're linked to (self, own children, or students in a
 class they teach). Enforced server-side, not trusted from client-supplied IDs.
+
+## OCR pipeline (`/ocr/pdf`)
+
+A separate, general-purpose PDF/PNG/JPG → Markdown OCR endpoint (`api/ocr_pipeline.py` +
+`OcrPdfView`) using GOT-OCR2.0 via `transformers`. It's **not** wired into the
+submissions/marking flow above -- that still uses the fake marker in `marking.py`,
+which grades photo uploads, not PDFs.
+
+Heavy ML deps (`torch`, `transformers`, `pdf2image`, ...) live in `requirements-ocr.txt`,
+not `requirements.txt`, so the base app install stays light. Install them only if you're
+using this endpoint:
+
+```bash
+pip install -r requirements-ocr.txt
+brew install poppler       # macOS, required by pdf2image
+apt install poppler-utils  # Linux
+```
+
+The model is downloaded from Hugging Face on first use and cached in-process (loaded once
+per server process, not once per request). GPU is auto-detected and used if available;
+otherwise it falls back to CPU with a logged warning (slow).
+
+```bash
+curl -s $BASE/ocr/pdf -H "Authorization: Token $TOKEN" \
+  -F "file=@/path/to/paper.pdf" -F "dpi=200" -F "mode=format"
+```
+
+`mode` is `format` (structure-preserving, default) or `ocr` (plain text). Response:
+`{ filename, markdown, failed_pages }` -- `failed_pages` lists any page numbers that
+failed OCR (skipped, not fatal) and are stubbed out in the markdown.
+
+PNG/JPG uploads also work -- `dpi` is ignored (no PDF-to-image conversion needed) and
+OCR runs directly on the image, treated as a single page.
 
 ## curl walkthrough
 
@@ -125,12 +154,3 @@ curl -s $BASE/admin/revision-materials -X POST -H "Authorization: Token $ADMIN_T
 List endpoints return `{ data: [...], page, page_size, total }`; errors return
 `{ error: { code, message, details } }`.
 
-## Known simplifications vs. the brief
-
-- SQLite instead of Neon Postgres (see top of this file).
-- Static DRF tokens instead of JWT access/refresh pairs — `/auth/refresh` exists for shape
-  compatibility but just re-validates the same token.
-- The AI Scanner is a synchronous fake marker, not a real OCR/marking worker — see `api/marking.py`.
-- Strong/weak cutoffs (`STRONG_CUTOFF` / `WEAK_CUTOFF`) and the profile-generation threshold
-  (`PROFILE_GENERATION_THRESHOLD`) live as constants in `api/marking.py`, per `schema_notes.md`
-  flagging these as product decisions still to be made.

@@ -7,7 +7,7 @@ export type StudentProfile = {
   strongArea: { topic: string; percent: number };
   weakArea: { topic: string; percent: number };
   topics: { name: string; percent: number; status: TopicStatus }[];
-  recommended: { name: string; description: string }[];
+  recommended: { subject: string; name: string; description: string }[];
 };
 
 export const STUDENTS: Record<string, StudentProfile> = {
@@ -25,9 +25,10 @@ export const STUDENTS: Record<string, StudentProfile> = {
       { name: 'Reading comprehension', percent: 0, status: 'neutral' },
     ],
     recommended: [
-      { name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
-      { name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
-      { name: 'Algebra Warm-up', description: 'Daily drill · 5 min' },
+      { subject: 'Biology', name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
+      { subject: 'Maths', name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
+      { subject: 'Maths', name: 'Algebra Warm-up', description: 'Daily drill · 5 min' },
+      { subject: 'English', name: 'Reading Comprehension Boost', description: 'Interactive practice set · 15 min' },
     ],
   },
   'Liam Chen': {
@@ -44,9 +45,10 @@ export const STUDENTS: Record<string, StudentProfile> = {
       { name: 'Reading comprehension', percent: 0, status: 'neutral' },
     ],
     recommended: [
-      { name: 'Persuasive Writing Toolkit', description: 'Guided templates · 12 min' },
-      { name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
-      { name: 'Algebra Extension Pack', description: 'Challenge set · 15 min' },
+      { subject: 'Biology', name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
+      { subject: 'Maths', name: 'Algebra Extension Pack', description: 'Challenge set · 15 min' },
+      { subject: 'Maths', name: 'Fraction Practice Set', description: 'Interactive practice set · 12 min' },
+      { subject: 'English', name: 'Persuasive Writing Toolkit', description: 'Guided templates · 12 min' },
     ],
   },
   'Priya Nair': {
@@ -63,9 +65,10 @@ export const STUDENTS: Record<string, StudentProfile> = {
       { name: 'Fractions', percent: 0, status: 'neutral' },
     ],
     recommended: [
-      { name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
-      { name: 'Reading Comprehension Boost', description: 'Interactive practice set · 15 min' },
-      { name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
+      { subject: 'Biology', name: 'Cell Structure Explainer', description: 'Video + quiz · 10 min' },
+      { subject: 'Maths', name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
+      { subject: 'English', name: 'Reading Comprehension Boost', description: 'Interactive practice set · 15 min' },
+      { subject: 'English', name: 'Persuasive Writing Enrichment', description: 'Extension activity · 10 min' },
     ],
   },
   'Ethan Brooks': {
@@ -82,9 +85,10 @@ export const STUDENTS: Record<string, StudentProfile> = {
       { name: 'Persuasive writing', percent: 0, status: 'neutral' },
     ],
     recommended: [
-      { name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
-      { name: 'Cell Structure Deep Dive', description: 'Video + quiz · 12 min' },
-      { name: 'Algebra Warm-up', description: 'Daily drill · 5 min' },
+      { subject: 'Biology', name: 'Cell Structure Deep Dive', description: 'Video + quiz · 12 min' },
+      { subject: 'Maths', name: 'Fraction Fundamentals', description: 'Interactive practice set · 15 min' },
+      { subject: 'Maths', name: 'Algebra Warm-up', description: 'Daily drill · 5 min' },
+      { subject: 'English', name: 'Persuasive Writing Starter', description: 'Guided templates · 10 min' },
     ],
   },
 };

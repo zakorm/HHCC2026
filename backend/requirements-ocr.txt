@@ -1,0 +1,19 @@
+# Heavy deps for the /ocr/pdf endpoint (api/ocr_pipeline.py). Kept out of
+# requirements.txt so the base Django app stays light -- only install this
+# if you're using the OCR pipeline.
+#
+# Also requires poppler on the system (not pip-installable):
+#   brew install poppler       # macOS
+#   apt install poppler-utils  # Linux
+
+torch
+torchvision
+# Pinned: GOT-OCR2.0's trust_remote_code model file uses transformers-internal
+# APIs (e.g. DynamicCache.seen_tokens) that were removed in later releases --
+# newer transformers raises `AttributeError: 'DynamicCache' object has no
+# attribute 'seen_tokens'`. 4.37.2 is the version the model was built against.
+transformers==4.37.2
+tiktoken
+verovio
+accelerate
+pdf2image

@@ -9,7 +9,7 @@ export default function TeacherTabsLayout() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
       <View className="gap-3.5 px-8 pb-3.5 pt-2 flex-row justify-between">
-        <Text className="font-display-semibold text-wordmark text-ink flex-2 text-center">jstyoucation</Text>
+        <Text className="font-display-semibold text-wordmark text-ink flex-2 text-center">jstucation</Text>
         <Pressable onPress={() => router.replace('/')} className="surface-card gap-3.5 self-start w-45">
           <Text className="text-center text-[10px]">Log Out</Text>
         </Pressable>

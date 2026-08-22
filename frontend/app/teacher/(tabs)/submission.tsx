@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, CheckCircle2, ChevronDown, Images, ImageUp } from 'lucide-react-native';
+import { Camera, CheckCircle2, ChevronDown, Images, ImageUp, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -69,7 +69,7 @@ function SelectField({
 export default function TeacherSubmissionsTab() {
   const [student, setStudent] = useState(STUDENTS[0]);
   const [subject, setSubject] = useState(SUBJECTS[0]);
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUris, setImageUris] = useState<string[]>([]);
   const [aiScore, setAiScore] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -81,22 +81,48 @@ export default function TeacherSubmissionsTab() {
     setFeedback('');
   }
 
+  function addImages(uris: string[]) {
+    setImageUris((prev) => [...prev, ...uris]);
+    if (aiScore === null) applyAiGrade();
+  }
+
+  function removeImage(uri: string) {
+    setImageUris((prev) => {
+      const next = prev.filter((item) => item !== uri);
+      if (next.length === 0) {
+        setAiScore(null);
+        setScore(0);
+        setFeedback('');
+      }
+      return next;
+    });
+  }
+
+  function resetForm() {
+    setImageUris([]);
+    setAiScore(null);
+    setScore(0);
+    setFeedback('');
+  }
+
   async function handleTakePhoto() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8 });
     if (result.canceled) return;
-    setImageUri(result.assets[0].uri);
-    applyAiGrade();
+    addImages(result.assets.map((asset) => asset.uri));
   }
 
   async function handleChooseFromLibrary() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsMultipleSelection: true,
+    });
     if (result.canceled) return;
-    setImageUri(result.assets[0].uri);
-    applyAiGrade();
+    addImages(result.assets.map((asset) => asset.uri));
   }
 
   return (
@@ -109,17 +135,24 @@ export default function TeacherSubmissionsTab() {
         <SelectField label="Student" value={student} options={STUDENTS} onChange={setStudent} />
         <SelectField label="Subject" value={subject} options={SUBJECTS} onChange={setSubject} />
 
-        {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="h-40 w-full rounded-md"
-            resizeMode="cover"
-          />
+        {imageUris.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
+            {imageUris.map((uri) => (
+              <View key={uri} className="relative">
+                <Image source={{ uri }} className="h-40 w-32 rounded-md" resizeMode="cover" />
+                <Pressable
+                  className="absolute right-1.5 top-1.5 rounded-pill bg-[rgba(31,58,95,0.65)] p-1"
+                  onPress={() => removeImage(uri)}>
+                  <X size={14} color={colors.card} />
+                </Pressable>
+              </View>
+            ))}
+          </ScrollView>
         ) : (
           <View className="items-center gap-2 rounded-md border-[1.5px] border-dashed border-green bg-green-soft py-6">
             <ImageUp size={24} color={colors.green} />
             <Text className="text-center text-body-ink-soft">
-              Tap a button below to add a photo
+              Tap a button below to add photos
             </Text>
           </View>
         )}
@@ -129,7 +162,9 @@ export default function TeacherSubmissionsTab() {
             className="flex-1 flex-row items-center justify-center gap-2 rounded-sm border border-line py-3"
             onPress={handleTakePhoto}>
             <Camera size={16} color={colors.ink} />
-            <Text className="text-body text-ink">{imageUri ? "Retake Photo" : "Take Photo"}</Text>
+            <Text className="text-body text-ink">
+              {imageUris.length > 0 ? 'Add Photo' : 'Take Photo'}
+            </Text>
           </Pressable>
           <Pressable
             className="flex-1 flex-row items-center justify-center gap-2 rounded-sm border border-line py-3"
@@ -149,21 +184,26 @@ export default function TeacherSubmissionsTab() {
           />
         )}
 
-        <Pressable
-          disabled={feedback.trim().length === 0}
-          onPress={() => {
-            setImageUri(null);
-            setAiScore(null);
-            setScore(0);
-            setFeedback('');
-          }}
-          className={`flex-row items-center justify-center gap-2 rounded-sm bg-green py-3.5 ${
-            feedback.trim().length === 0 ? 'opacity-40' : ''
-          }`}>
-          <CheckCircle2 size={16} color={colors.card} />
-          <Text className="font-body-semibold text-body text-card">Save score</Text>
-        </Pressable>
-        {aiScore !== null && feedback.trim().length === 0 && (
+        <View className="flex-row gap-2">
+          {(imageUris.length > 0 || aiScore !== null) && (
+            <Pressable
+              onPress={resetForm}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-sm border border-line py-3.5">
+              <X size={16} color={colors.ink} />
+              <Text className="font-body-semibold text-body text-ink">Cancel</Text>
+            </Pressable>
+          )}
+          <Pressable
+            disabled={imageUris.length === 0 || feedback.trim().length === 0}
+            onPress={resetForm}
+            className={`flex-1 flex-row items-center justify-center gap-2 rounded-sm bg-green py-3.5 ${
+              imageUris.length === 0 || feedback.trim().length === 0 ? 'opacity-40' : ''
+            }`}>
+            <CheckCircle2 size={16} color={colors.card} />
+            <Text className="font-body-semibold text-body text-card">Save score</Text>
+          </Pressable>
+        </View>
+        {imageUris.length > 0 && aiScore !== null && feedback.trim().length === 0 && (
           <Text className="text-center text-small text-muted">
             Add feedback for the student before saving.
           </Text>

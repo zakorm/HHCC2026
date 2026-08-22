@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { AuthProvider } from '@/contexts/auth-context';
 import '@/global.css';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,14 +38,14 @@ export default function RootLayout() {
   }
 
   return (
-  <>
+  <AuthProvider>
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ animation: 'slide_from_left' }}/>
-      <Stack.Screen name="teacher"/>
-      <Stack.Screen name="student"/>
-      <Stack.Screen name="parent"/>
+      <Stack.Screen name="teacher/(tabs)"/>
+      <Stack.Screen name="student/(tabs)"/>
+      <Stack.Screen name="parent/(tabs)"/>
     </Stack>
     <StatusBar style="dark" />
-  </>
+  </AuthProvider>
   );
 }

@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -19,7 +22,7 @@ from revision.models import RecommendationStatus, RevisionMaterial, StudentRevis
 from revision.serializers import RevisionMaterialSerializer
 from submissions.models import Submission, SubmissionQuestion, SubmissionStatus
 
-from . import marking
+from . import marking, ocr_pipeline
 from .exceptions import error_response
 from .pagination import EnvelopePagination
 from .permissions import is_admin, require_class_access, require_student_access, teacher_class_ids
@@ -263,6 +266,57 @@ class ReprocessView(APIView):
             )
         marking.run_marking(submission)
         return Response(status=status.HTTP_202_ACCEPTED)
+
+
+# ---------------------------------------------------------------- OCR pipeline
+
+class OcrPdfView(APIView):
+    """
+    General-purpose PDF/image -> Markdown OCR (GOT-OCR2.0 by default). Not
+    wired into the submissions/marking flow -- that still uses the fake
+    marker in `marking.py`, which operates on photo uploads, not PDFs.
+
+    Requires the heavy deps in requirements-ocr.txt to be installed.
+    """
+
+    def post(self, request):
+        upload = request.FILES.get("file")
+        if not upload:
+            return error_response(
+                "missing_file", "A `file` (PDF, PNG, or JPG) upload is required.", status.HTTP_400_BAD_REQUEST
+            )
+        suffix = Path(upload.name).suffix.lower()
+        if suffix not in (".pdf",) + ocr_pipeline.IMAGE_EXTENSIONS:
+            return error_response(
+                "invalid_file", "Only PDF, PNG, or JPG files are supported.", status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            dpi = int(request.data.get("dpi", ocr_pipeline.DEFAULT_DPI))
+        except (TypeError, ValueError):
+            return error_response("invalid_dpi", "`dpi` must be an integer.", status.HTTP_400_BAD_REQUEST)
+        mode = request.data.get("mode", ocr_pipeline.DEFAULT_MODE)
+
+        with tempfile.NamedTemporaryFile(suffix=suffix) as tmp_file:
+            for chunk in upload.chunks():
+                tmp_file.write(chunk)
+            tmp_file.flush()
+
+            try:
+                if suffix == ".pdf":
+                    markdown, failed_pages = ocr_pipeline.process_pdf(tmp_file.name, dpi=dpi, mode=mode)
+                else:
+                    markdown, failed_pages = ocr_pipeline.process_image(tmp_file.name, mode=mode)
+            except ocr_pipeline.OcrPipelineError as exc:
+                return error_response(
+                    "ocr_pipeline_error", str(exc), status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+        return Response({
+            "filename": upload.name,
+            "markdown": markdown,
+            "failed_pages": failed_pages,
+        })
 
 
 # ---------------------------------------------------------------- Student profile

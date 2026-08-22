@@ -28,6 +28,8 @@ urlpatterns = [
     path("submissions/<uuid:submission_id>/questions/<uuid:question_id>", views.QuestionOverrideView.as_view()),
     path("submissions/<uuid:submission_id>/reprocess", views.ReprocessView.as_view()),
 
+    path("ocr/pdf", views.OcrPdfView.as_view()),
+
     path("students/<uuid:student_id>/subjects", views.StudentSubjectsView.as_view()),
     path("students/<uuid:student_id>/subjects/<uuid:subject_id>/profile", views.StudentSubjectProfileView.as_view()),
     path("students/<uuid:student_id>/recommendations", views.RecommendationListView.as_view()),

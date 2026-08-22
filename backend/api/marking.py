@@ -1,16 +1,21 @@
 """
-Fake AI Scanner marking pipeline.
+AI Scanner marking pipeline.
 
-Real OCR/answer-evaluation is out of scope for this pass (see
-claude-code-brief/PRD.md and api_design.md). This module stands in for the
-"worker -> POST /internal/submissions/{id}/marking-result" call described
-there: it's invoked synchronously right after a submission is created (or on
-/reprocess) instead of over HTTP from a separate worker process, but performs
-the same steps -- write submission_questions, flip status, recompute stats,
-generate recommendations, log activity.
+Runs the real OCR + topic-classification pipeline (api/ocr_pipeline.py +
+api/topic_analysis.py) synchronously against the submission's photo, right
+after a submission is created (or on /reprocess) -- standing in for the
+"worker -> POST /internal/submissions/{id}/marking-result" call described in
+claude-code-brief/api_design.md, but in-process instead of over HTTP from a
+separate worker. Requires requirements-ocr.txt to be installed.
+
+One SubmissionQuestion is written per topic the model found a real signal on
+(strong -> correct, needs_improvement -> incorrect) -- there's no per-question
+answer-key parsing, so "question_count" here means "topics classified", not a
+literal count of exam questions. If OCR/classification fails outright, or
+finds no signal on any topic, the submission is routed to needs_review rather
+than left half-marked.
 """
 
-import random
 from decimal import Decimal
 
 from django.utils import timezone
@@ -20,19 +25,28 @@ from profiles.models import StudentSubjectProfile, StudentTopicStat, TopicClassi
 from revision.models import RecommendationStatus, RevisionMaterial, StudentRevisionRecommendation
 from submissions.models import Submission, SubmissionQuestion, SubmissionStatus
 
+from . import ocr_pipeline, topic_analysis
+
 # Cutoffs and thresholds below aren't fixed by product yet (see schema_notes.md
 # "Open questions") -- kept as module constants so they're easy to retune
 # without touching the pipeline logic.
 STRONG_CUTOFF = 70
 WEAK_CUTOFF = 50
-NEEDS_REVIEW_CONFIDENCE_THRESHOLD = Decimal("0.65")
 PROFILE_GENERATION_THRESHOLD = 1
 
+# Per-question confidence the classifier doesn't actually calibrate -- it only
+# gives a binary strong/needs_improvement per topic, no probability. Kept as a
+# fixed stand-in so the SubmissionQuestion.ai_confidence column stays populated.
+CLASSIFICATION_CONFIDENCE = Decimal("0.850")
 
-def _fake_mark_question(topic):
-    is_correct = random.random() < 0.65
-    confidence = Decimal(str(round(random.uniform(0.55, 0.99), 3)))
-    return is_correct, confidence
+
+def _scan_submission(submission, topics):
+    """OCR the submission photo and classify `topics` against it. Never raises."""
+    try:
+        markdown, _failed_pages = ocr_pipeline.process_image(submission.photo.path)
+        return topic_analysis.analyze_topics(markdown, topics)
+    except (ocr_pipeline.OcrPipelineError, topic_analysis.TopicAnalysisError):
+        return {"strong": [], "needs_improvement": []}
 
 
 def run_marking(submission):
@@ -45,30 +59,25 @@ def run_marking(submission):
 
     submission.questions.all().delete()
 
-    question_count = submission.question_count or random.randint(5, 8)
-    submission.question_count = question_count
+    analysis = _scan_submission(submission, topics)
+    classified = [(topic, True) for topic in analysis["strong"]] + [
+        (topic, False) for topic in analysis["needs_improvement"]
+    ]
 
-    confidences = []
+    submission.question_count = len(classified)
+
     touched_topic_ids = set()
-    for question_number in range(1, question_count + 1):
-        topic = random.choice(topics)
-        is_correct, confidence = _fake_mark_question(topic)
-        confidences.append(confidence)
+    for question_number, (topic, is_correct) in enumerate(classified, start=1):
         touched_topic_ids.add(topic.id)
         SubmissionQuestion.objects.create(
             submission=submission,
             question_number=question_number,
             topic=topic,
             ai_is_correct=is_correct,
-            ai_confidence=confidence,
+            ai_confidence=CLASSIFICATION_CONFIDENCE,
         )
 
-    avg_confidence = sum(confidences) / len(confidences)
-    submission.status = (
-        SubmissionStatus.NEEDS_REVIEW
-        if avg_confidence < NEEDS_REVIEW_CONFIDENCE_THRESHOLD
-        else SubmissionStatus.MARKED
-    )
+    submission.status = SubmissionStatus.NEEDS_REVIEW if not classified else SubmissionStatus.MARKED
     submission.marked_at = timezone.now()
     submission.save(update_fields=["question_count", "status", "marked_at"])
 

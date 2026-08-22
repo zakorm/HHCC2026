@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ClassStudent, ClassTeacher, SchoolClass
+from .models import ClassSchedule, ClassStudent, ClassTeacher, SchoolClass
 
 
 class ClassTeacherInline(admin.TabularInline):
@@ -31,3 +31,9 @@ class ClassTeacherAdmin(admin.ModelAdmin):
 class ClassStudentAdmin(admin.ModelAdmin):
     list_display = ("school_class", "student", "enrolled_at")
     list_filter = ("school_class",)
+
+
+@admin.register(ClassSchedule)
+class ClassScheduleAdmin(admin.ModelAdmin):
+    list_display = ("school_class", "day_of_week", "start_time", "end_time", "room")
+    list_filter = ("school_class", "day_of_week")

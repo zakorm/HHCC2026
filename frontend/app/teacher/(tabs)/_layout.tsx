@@ -1,5 +1,5 @@
 import { router, Tabs } from 'expo-router';
-import { ClipboardList, LayoutDashboard, ListChecks } from 'lucide-react-native';
+import { CalendarDays, ClipboardList, LayoutDashboard, ListChecks } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,6 +29,13 @@ export default function TeacherTabsLayout() {
             options={{
               title: 'Dashboard',
               tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size} />,
+            }}
+          />
+          <Tabs.Screen
+            name="schedule"
+            options={{
+              title: 'Schedule',
+              tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
             }}
           />
           <Tabs.Screen

@@ -2,6 +2,7 @@ import tempfile
 from pathlib import Path
 
 from django.contrib.auth import authenticate
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, status, viewsets
@@ -13,7 +14,7 @@ from rest_framework.views import APIView
 from accounts.models import ParentStudentLink, School, StudentProfile, User
 from accounts.serializers import SchoolSerializer
 from activitylog.models import ActivityLog
-from classroom.models import ClassStudent, ClassTeacher, SchoolClass
+from classroom.models import ClassSchedule, ClassStudent, ClassTeacher, SchoolClass
 from classroom.serializers import SchoolClassSerializer
 from curriculum.models import Subject, Topic, Unit
 from curriculum.serializers import SubjectSerializer, TopicSerializer, UnitSerializer
@@ -22,7 +23,7 @@ from revision.models import RecommendationStatus, RevisionMaterial, StudentRevis
 from revision.serializers import RevisionMaterialSerializer
 from submissions.models import Submission, SubmissionQuestion, SubmissionStatus
 
-from . import marking, ocr_pipeline
+from . import marking, ocr_pipeline, topic_analysis
 from .exceptions import error_response
 from .pagination import EnvelopePagination
 from .permissions import is_admin, require_class_access, require_student_access, teacher_class_ids
@@ -33,6 +34,9 @@ from .serializers import (
     QuestionOverrideSerializer,
     RecommendationSerializer,
     RosterEntrySerializer,
+    ScheduleSlotAdminSerializer,
+    ScheduleSlotCreateSerializer,
+    ScheduleSlotSerializer,
     StudentRefSerializer,
     StudentSummarySerializer,
     SubjectProfileSerializer,
@@ -171,6 +175,38 @@ class ClassPrioritiesView(APIView):
         return Response({"data": PriorityGroupSerializer(list(groups.values()), many=True).data})
 
 
+class TeacherScheduleView(APIView):
+    """Weekly timetable for the current teacher, across every class they teach."""
+
+    def get(self, request):
+        class_ids = teacher_class_ids(request.user)
+        slots = ClassSchedule.objects.filter(school_class_id__in=class_ids).select_related(
+            "school_class", "school_class__subject"
+        ).order_by("day_of_week", "start_time")
+
+        student_counts = dict(
+            ClassStudent.objects.filter(school_class_id__in=class_ids)
+            .values("school_class_id")
+            .annotate(count=Count("student_id"))
+            .values_list("school_class_id", "count")
+        )
+
+        data = [
+            {
+                "day_of_week": slot.day_of_week,
+                "start_time": slot.start_time,
+                "end_time": slot.end_time,
+                "class_id": slot.school_class_id,
+                "class_name": slot.school_class.name,
+                "subject_name": slot.school_class.subject.name,
+                "room": slot.room,
+                "student_count": student_counts.get(slot.school_class_id, 0),
+            }
+            for slot in slots
+        ]
+        return Response({"data": ScheduleSlotSerializer(data, many=True).data})
+
+
 class SubjectUnitsView(generics.ListAPIView):
     serializer_class = UnitRefSerializer
     pagination_class = EnvelopePagination
@@ -272,9 +308,12 @@ class ReprocessView(APIView):
 
 class OcrPdfView(APIView):
     """
-    General-purpose PDF/image -> Markdown OCR (GOT-OCR2.0 by default). Not
-    wired into the submissions/marking flow -- that still uses the fake
-    marker in `marking.py`, which operates on photo uploads, not PDFs.
+    General-purpose PDF/image -> Markdown OCR (GOT-OCR2.0 by default), with
+    optional topic strength/weakness classification chained on when a
+    `unit_id` is provided. Standalone/ad-hoc use -- doesn't persist
+    anything. `marking.py` calls the same `ocr_pipeline`/`topic_analysis`
+    modules directly for the real submissions/marking flow (photo uploads,
+    not PDFs, and it does persist).
 
     Requires the heavy deps in requirements-ocr.txt to be installed.
     """
@@ -297,6 +336,11 @@ class OcrPdfView(APIView):
             return error_response("invalid_dpi", "`dpi` must be an integer.", status.HTTP_400_BAD_REQUEST)
         mode = request.data.get("mode", ocr_pipeline.DEFAULT_MODE)
 
+        unit_id = request.data.get("unit_id")
+        unit = None
+        if unit_id:
+            unit = get_object_or_404(Unit, id=unit_id)
+
         with tempfile.NamedTemporaryFile(suffix=suffix) as tmp_file:
             for chunk in upload.chunks():
                 tmp_file.write(chunk)
@@ -312,11 +356,30 @@ class OcrPdfView(APIView):
                     "ocr_pipeline_error", str(exc), status.HTTP_422_UNPROCESSABLE_ENTITY
                 )
 
-        return Response({
+        payload = {
             "filename": upload.name,
             "markdown": markdown,
             "failed_pages": failed_pages,
-        })
+        }
+
+        if unit is not None:
+            topics = list(unit.topics.all()) or list(unit.subject.topics.all())
+            if not topics:
+                return error_response(
+                    "no_topics",
+                    f"No topics available under unit {unit_id} to classify against.",
+                    status.HTTP_422_UNPROCESSABLE_ENTITY,
+                )
+            try:
+                analysis = topic_analysis.analyze_topics(markdown, topics)
+            except topic_analysis.TopicAnalysisError as exc:
+                return error_response(
+                    "topic_analysis_error", str(exc), status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+            payload["strong_topics"] = TopicSerializer(analysis["strong"], many=True).data
+            payload["needs_improvement_topics"] = TopicSerializer(analysis["needs_improvement"], many=True).data
+
+        return Response(payload)
 
 
 # ---------------------------------------------------------------- Student profile
@@ -520,3 +583,52 @@ class AddClassStudentView(APIView):
         student_id = request.data.get("student_id")
         ClassStudent.objects.get_or_create(school_class_id=class_id, student_id=student_id)
         return Response(status=status.HTTP_201_CREATED)
+
+
+class AdminClassScheduleView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def post(self, request, class_id):
+        get_object_or_404(SchoolClass, id=class_id)
+
+        serializer = ScheduleSlotCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if data["start_time"] >= data["end_time"]:
+            return error_response(
+                "invalid_time_range", "start_time must be before end_time.", status.HTTP_400_BAD_REQUEST
+            )
+
+        overlap = ClassSchedule.objects.filter(
+            school_class_id=class_id,
+            day_of_week=data["day_of_week"],
+            start_time__lt=data["end_time"],
+            end_time__gt=data["start_time"],
+        ).exists()
+        if overlap:
+            return error_response(
+                "overlapping_slot",
+                "This slot overlaps another slot already scheduled for this class.",
+                status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Same teacher double-booked across different classes: flag, don't block --
+        # co-teaching or admin error correction may legitimately need this.
+        teacher_ids = ClassTeacher.objects.filter(school_class_id=class_id).values_list("teacher_id", flat=True)
+        sibling_class_ids = set(
+            ClassTeacher.objects.filter(teacher_id__in=teacher_ids)
+            .exclude(school_class_id=class_id)
+            .values_list("school_class_id", flat=True)
+        )
+        teacher_overlap = ClassSchedule.objects.filter(
+            school_class_id__in=sibling_class_ids,
+            day_of_week=data["day_of_week"],
+            start_time__lt=data["end_time"],
+            end_time__gt=data["start_time"],
+        ).exists()
+
+        slot = ClassSchedule.objects.create(school_class_id=class_id, **data)
+        payload = ScheduleSlotAdminSerializer(slot).data
+        payload["teacher_overlap_warning"] = teacher_overlap
+        return Response(payload, status=status.HTTP_201_CREATED)

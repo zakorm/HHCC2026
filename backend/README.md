@@ -8,12 +8,16 @@ Database is local SQLite
 Auth is DRF's `TokenAuthentication` (a static per-user token, not JWT) — simplest thing that
 satisfies the `Authorization: Bearer <token>`-shaped contract in `openapi.yaml` for the project. `/auth/login` accepts an email and password, and resolves it to the underlying Django user.
 
-The "AI Scanner" is a synchronous fake marker (`api/marking.py`) — it picks a random topic from
-the submission's unit and a random correct/incorrect per question, then runs the exact same
-stats-recalculation / recommendation-generation / activity-log cascade a real OCR+marking worker
-would trigger. Swap `run_marking()`'s `_fake_mark_question` for a real provider call later; the
-rest of the pipeline (status flow, `student_topic_stats`, `student_subject_profiles`,
-`student_revision_recommendations`, `activity_log`) is real.
+The "AI Scanner" (`api/marking.py`) runs synchronously right after a submission is created (or on
+`/reprocess`): it OCRs the submission photo (`api/ocr_pipeline.py`, GOT-OCR2.0) and classifies the
+unit's topics as strong/needs-improvement against the extracted text (`api/topic_analysis.py`,
+Qwen2.5-1.5B-Instruct), writing one `SubmissionQuestion` per topic the model found a real signal
+on. There's no per-question answer-key parsing, so `question_count` means "topics classified," not
+a literal count of exam questions -- and because it's real model inference (not a random roll),
+`POST /submissions` and `/reprocess` can take a while (CPU-bound, no GPU on most dev machines).
+Requires `requirements-ocr.txt` (see the OCR pipeline section below). The rest of the pipeline
+(status flow, `student_topic_stats`, `student_subject_profiles`, `student_revision_recommendations`,
+`activity_log`) is unchanged from before.
 
 ## Setup
 
@@ -58,9 +62,9 @@ class they teach). Enforced server-side, not trusted from client-supplied IDs.
 ## OCR pipeline (`/ocr/pdf`)
 
 A separate, general-purpose PDF/PNG/JPG → Markdown OCR endpoint (`api/ocr_pipeline.py` +
-`OcrPdfView`) using GOT-OCR2.0 via `transformers`. It's **not** wired into the
-submissions/marking flow above -- that still uses the fake marker in `marking.py`,
-which grades photo uploads, not PDFs.
+`OcrPdfView`) using GOT-OCR2.0 via `transformers`. Standalone/ad-hoc use -- doesn't persist
+anything. `marking.py` calls the same `ocr_pipeline`/`topic_analysis` modules directly for
+the real submissions/marking flow above (photo uploads, not PDFs, and it does persist).
 
 Heavy ML deps (`torch`, `transformers`, `pdf2image`, ...) live in `requirements-ocr.txt`,
 not `requirements.txt`, so the base app install stays light. Install them only if you're
@@ -88,6 +92,23 @@ failed OCR (skipped, not fatal) and are stubbed out in the markdown.
 PNG/JPG uploads also work -- `dpi` is ignored (no PDF-to-image conversion needed) and
 OCR runs directly on the image, treated as a single page.
 
+### Topic classification (optional, via `unit_id`)
+
+Pass a `unit_id` and the OCR'd text is also run through a small local instruct LLM
+(`api/topic_analysis.py`, Qwen2.5-1.5B-Instruct -- same `requirements-ocr.txt`, no extra
+deps) that sorts the unit's topics (falling back to the whole subject's topics if the
+unit has none) into `strong` vs `needs_improvement` based on whatever signal it can read
+out of the text (marks, corrections, grades, or its own judgement of answer correctness).
+Topics the text doesn't give a signal on are omitted from both lists.
+
+```bash
+curl -s $BASE/ocr/pdf -H "Authorization: Token $TOKEN" \
+  -F "file=@/path/to/paper.pdf" -F "mode=format" -F "unit_id=<unit_id>"
+```
+
+Adds `strong_topics` / `needs_improvement_topics` (each a list of `{id, unit, subject, name}`)
+to the response.
+
 ## curl walkthrough
 
 ```bash
@@ -113,7 +134,7 @@ curl -s $BASE/classes/$CLASS_ID/priorities -H "Authorization: Token $TOKEN"
 # --- units for a subject (upload screen dropdown) ---
 curl -s $BASE/subjects/<subject_id>/units -H "Authorization: Token $TOKEN"
 
-# --- upload a submission (runs the fake AI marker synchronously) ---
+# --- upload a submission (runs the real OCR + topic-classification AI scanner synchronously) ---
 curl -s $BASE/submissions -H "Authorization: Token $TOKEN" \
   -F "photo=@/path/to/photo.jpg" \
   -F "student_id=<student_id>" -F "class_id=$CLASS_ID" \

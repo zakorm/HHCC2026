@@ -23,6 +23,8 @@ urlpatterns = [
     path("classes/<uuid:class_id>/priorities", views.ClassPrioritiesView.as_view()),
     path("subjects/<uuid:subject_id>/units", views.SubjectUnitsView.as_view()),
 
+    path("teachers/me/schedule", views.TeacherScheduleView.as_view()),
+
     path("submissions", views.SubmissionListCreateView.as_view()),
     path("submissions/<uuid:submission_id>", views.SubmissionDetailView.as_view()),
     path("submissions/<uuid:submission_id>/questions/<uuid:question_id>", views.QuestionOverrideView.as_view()),
@@ -43,6 +45,7 @@ urlpatterns = [
     path("admin/parent-links", views.ParentLinkView.as_view()),
     path("admin/classes/<uuid:class_id>/teachers", views.AddClassTeacherView.as_view()),
     path("admin/classes/<uuid:class_id>/students", views.AddClassStudentView.as_view()),
+    path("admin/classes/<uuid:class_id>/schedule", views.AdminClassScheduleView.as_view()),
 
     path("", include(router.urls)),
 ]

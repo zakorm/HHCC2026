@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.models import StudentProfile, User
 from activitylog.models import ActivityLog
-from classroom.models import SchoolClass
+from classroom.models import ClassSchedule, SchoolClass
 from curriculum.models import Unit
 from profiles.models import StudentSubjectProfile, StudentTopicStat
 from revision.models import StudentRevisionRecommendation
@@ -45,6 +45,34 @@ class RosterEntrySerializer(serializers.Serializer):
     student = StudentRefSerializer()
     assignments_count = serializers.IntegerField()
     weak_topic_count = serializers.IntegerField()
+
+
+class ScheduleSlotSerializer(serializers.Serializer):
+    day_of_week = serializers.IntegerField()
+    start_time = serializers.TimeField(format="%H:%M")
+    end_time = serializers.TimeField(format="%H:%M")
+    class_id = serializers.UUIDField()
+    class_name = serializers.CharField()
+    subject_name = serializers.CharField()
+    room = serializers.CharField(allow_blank=True)
+    student_count = serializers.IntegerField()
+
+
+class ScheduleSlotCreateSerializer(serializers.Serializer):
+    day_of_week = serializers.IntegerField(min_value=0, max_value=6)
+    start_time = serializers.TimeField()
+    end_time = serializers.TimeField()
+    room = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class ScheduleSlotAdminSerializer(serializers.ModelSerializer):
+    class_id = serializers.UUIDField(source="school_class_id")
+    start_time = serializers.TimeField(format="%H:%M")
+    end_time = serializers.TimeField(format="%H:%M")
+
+    class Meta:
+        model = ClassSchedule
+        fields = ["id", "class_id", "day_of_week", "start_time", "end_time", "room", "created_at"]
 
 
 class PriorityGroupSerializer(serializers.Serializer):
